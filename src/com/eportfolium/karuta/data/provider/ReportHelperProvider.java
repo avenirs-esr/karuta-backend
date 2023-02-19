@@ -48,6 +48,14 @@ public class ReportHelperProvider {
         final Set<Entry<String, String>> values = map.entrySet();
         ArrayList<String> cols = new ArrayList<>();
         ArrayList<String> vals = new ArrayList<>();
+
+        if( !cred.isAdmin(c, userId) ) {
+            // If user is not admin, check if read access is defined
+            cols.add( "a1=?" );
+            String user = cred.getUsername(c, userId);
+            vals.add(user);
+        }
+
         for (Entry<String, String> entry : values) {
             cols.add(entry.getKey() + "=?");
             vals.add(entry.getValue());
