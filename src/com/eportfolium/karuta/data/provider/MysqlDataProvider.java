@@ -87,6 +87,7 @@ import com.eportfolium.karuta.security.NodeRight;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
@@ -114,6 +115,7 @@ public class MysqlDataProvider implements DataProvider {
     public static final Pattern ROLE_PATTERN = Pattern.compile("<roles>([^<]*)</roles>");
     public static final Pattern SEESTART_PAT = Pattern.compile("seestart=\"([^\"]*)");
     public static final Pattern SEEEND_PAT = Pattern.compile("seeend=\"([^\"]*)");
+    public static final Pattern FILEID_PAT = Pattern.compile("lang=\"([^\"]*)\">([^%]*)");
     public static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm");
     public static final SimpleDateFormat DATETIME_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     public static final String ONLYUSER = "(?<![-=+])(user)(?![-=+])";
@@ -192,7 +194,7 @@ public class MysqlDataProvider implements DataProvider {
 
             return st.executeQuery();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         }
 
         return null;
@@ -220,7 +222,7 @@ public class MysqlDataProvider implements DataProvider {
                 data[1] = res.getString("content");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         }
 
         return data;
@@ -344,7 +346,7 @@ public class MysqlDataProvider implements DataProvider {
 
             return st.executeQuery();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         }
 
         return null;
@@ -365,7 +367,7 @@ public class MysqlDataProvider implements DataProvider {
 
             return st.executeQuery();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         }
 
         return null;
@@ -429,7 +431,7 @@ public class MysqlDataProvider implements DataProvider {
 
             return st.executeQuery();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         }
 
         return null;
@@ -447,7 +449,7 @@ public class MysqlDataProvider implements DataProvider {
 
             return st.executeQuery();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         }
 
         return null;
@@ -464,7 +466,7 @@ public class MysqlDataProvider implements DataProvider {
 
             return st.executeQuery();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
             return null;
         }
     }
@@ -480,7 +482,7 @@ public class MysqlDataProvider implements DataProvider {
 
             return st.executeQuery();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
             return null;
         }
     }
@@ -736,7 +738,7 @@ public class MysqlDataProvider implements DataProvider {
 
             return st.executeUpdate();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
             return -1;
         }
     }
@@ -856,12 +858,12 @@ public class MysqlDataProvider implements DataProvider {
 
             status = changes;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             if (st != null) try {
                 st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
         return status;
@@ -875,7 +877,7 @@ public class MysqlDataProvider implements DataProvider {
         try {
             if (((xsiType.equals("nodeRes") && sharedNodeRes == 1)
                     || (!xsiType.equals("context") && !xsiType.equals("nodeRes") && sharedRes == 1)
-                ) && portfolioModelId != null) {
+            ) && portfolioModelId != null) {
                 // On ne fait rien
 
             } else {
@@ -898,10 +900,10 @@ public class MysqlDataProvider implements DataProvider {
                 }
 
                 st.executeUpdate();
-                if (st != null) try {
+                try {
                     st.close();
                 } catch (SQLException e) {
-                    e.printStackTrace();
+                    logger.error("Managed error: ", e);
                 }
             }
             // Ensuite on met à jour les id ressource au niveau du noeud parent
@@ -936,13 +938,13 @@ public class MysqlDataProvider implements DataProvider {
             st.executeUpdate();
             status = st.getUpdateCount();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
             status = -1;
         } finally {
             if (st != null) try {
                 st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
         return status;
@@ -989,14 +991,14 @@ public class MysqlDataProvider implements DataProvider {
             return st.executeUpdate();
         } catch (Exception ex) {
             logger.error(ex.getMessage());
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
             return -1;
         } finally {
             if (st != null) {
                 try {
                     st.close();
                 } catch (SQLException e) {
-                    e.printStackTrace();
+                    logger.error("Managed error: ", e);
                 }
             }
         }
@@ -1060,7 +1062,7 @@ public class MysqlDataProvider implements DataProvider {
         } catch (RestWebApplicationException e) {
             throw e;
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
             return -1;
         }
     }
@@ -1178,7 +1180,7 @@ public class MysqlDataProvider implements DataProvider {
 
             return st.execute();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
             return false;
         }
     }
@@ -1241,7 +1243,7 @@ public class MysqlDataProvider implements DataProvider {
             res.next();
             return res.getString("node_parent_uuid");
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
             return null;
         }
 
@@ -1265,7 +1267,7 @@ public class MysqlDataProvider implements DataProvider {
             else
                 return "";
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
             return null;
         }
     }
@@ -1284,7 +1286,7 @@ public class MysqlDataProvider implements DataProvider {
             res.next();
             return res.getString("res_node_uuid");
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
             return null;
         }
     }
@@ -1302,7 +1304,7 @@ public class MysqlDataProvider implements DataProvider {
             res.next();
             return res.getInt("node_order");
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
             return 0;
         }
     }
@@ -1429,7 +1431,7 @@ public class MysqlDataProvider implements DataProvider {
         String sql;
         ResultSet res = null;
         String pid = this.getPortfolioUuidByPortfolioCode(c, portfolioCode);
-        boolean withResources = Boolean.parseBoolean(resources);;
+        boolean withResources = Boolean.parseBoolean(resources);
         String result = "";
 
         if (withResources) {
@@ -2145,7 +2147,7 @@ public class MysqlDataProvider implements DataProvider {
             if (rs.next())
                 response = true;
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
         } finally {
             try {
                 if (rs != null)
@@ -2153,7 +2155,7 @@ public class MysqlDataProvider implements DataProvider {
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -2310,8 +2312,8 @@ public class MysqlDataProvider implements DataProvider {
                     String nodeRole;
                     Node att = attribMap.getNamedItem("access");
                     //if (att != null) {
-                        //if(access.equalsIgnoreCase("public") || access.contains("public"))
-                        //	credential.postGroupRight("all",uuid,Credential.READ,portfolioUuid,userId);
+                    //if(access.equalsIgnoreCase("public") || access.contains("public"))
+                    //	credential.postGroupRight("all",uuid,Credential.READ,portfolioUuid,userId);
                     //}
                     att = attribMap.getNamedItem("seenoderoles");
                     if (att != null) {
@@ -2485,7 +2487,7 @@ public class MysqlDataProvider implements DataProvider {
                         setPublic = true;
                     //*/
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.error("Managed error: ", e);
                 }
             }
 
@@ -2608,9 +2610,9 @@ public class MysqlDataProvider implements DataProvider {
                 if (!c.getAutoCommit())
                     c.rollback();
             } catch (SQLException e1) {
-                e1.printStackTrace();
+                logger.error("Managed error: ", e1);
             }
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 c.setAutoCommit(true);
@@ -2622,7 +2624,7 @@ public class MysqlDataProvider implements DataProvider {
                     st.close();
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -2666,7 +2668,7 @@ public class MysqlDataProvider implements DataProvider {
                     if (resResource.next())
                         result.append("\"#cdata-section\": \"").append(JSONObject.escape(resResource.getString("content"))).append("\"");
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    logger.error("Managed error: ", ex);
                 }
             }
 
@@ -2745,7 +2747,7 @@ public class MysqlDataProvider implements DataProvider {
                         builder = newInstance.newDocumentBuilder();
                         document = builder.newDocument();
                     } catch (ParserConfigurationException e) {
-                        e.printStackTrace();
+                        logger.error("Managed error: ", e);
                     }
 
                     metaxml = System.currentTimeMillis();
@@ -2763,7 +2765,7 @@ public class MysqlDataProvider implements DataProvider {
                             transformer.transform(new DOMSource(meta), new StreamResult(buffer));
                             result.append(buffer);
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            logger.error("Managed error: ", e);
                         }
                     } else
                         result.append("<metadata-wad/>");
@@ -3136,7 +3138,7 @@ public class MysqlDataProvider implements DataProvider {
                 attributes.setAttribute(name, value);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         }
     }
 
@@ -3858,7 +3860,7 @@ public class MysqlDataProvider implements DataProvider {
                     } catch (ParseException e) {
                         // For some reason, date isn't formatted correctly
                         // Should never happen
-                        e.printStackTrace();
+                        logger.error("Managed error: ", e);
                     }
                 }
                 res.close();
@@ -3967,7 +3969,7 @@ public class MysqlDataProvider implements DataProvider {
                     st.close();
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -4001,10 +4003,10 @@ public class MysqlDataProvider implements DataProvider {
                 result.append("/>");
 
                 //if (resNode.getString("asm_type").equals("asmResource")) {
-                    // si asmResource
+                // si asmResource
 //                    try {
 //                    } catch (Exception ex) {
-//                        ex.printStackTrace();
+//                        logger.error("Managed error: ", ex);
 //                    }
                 //}
 
@@ -4024,7 +4026,7 @@ public class MysqlDataProvider implements DataProvider {
 
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
         }
         return result;
     }
@@ -4086,7 +4088,7 @@ public class MysqlDataProvider implements DataProvider {
 
             long t_convertString = System.currentTimeMillis();
 
-			if (logger.isTraceEnabled()) {
+            if (logger.isTraceEnabled()) {
                 long d_right = t_nodeRight - t_start;
                 long d_queryNodes = t_nodePerLevel - t_nodeRight;
                 long d_initConstruct = t_initContruction - t_nodePerLevel;
@@ -4374,7 +4376,7 @@ public class MysqlDataProvider implements DataProvider {
 
             t6 = System.currentTimeMillis();
 
-			if (logger.isTraceEnabled()) {
+            if (logger.isTraceEnabled()) {
                 final long checkRights = t1 - t0;
                 final long initstuff = t2 - t1;
                 final long insertbase = t3 - t2;
@@ -4389,9 +4391,9 @@ public class MysqlDataProvider implements DataProvider {
                 if (!c.getAutoCommit())
                     c.rollback();
             } catch (SQLException e1) {
-                e1.printStackTrace();
+                logger.error("Managed error: ", e1);
             }
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 c.setAutoCommit(true);
@@ -4404,7 +4406,7 @@ public class MysqlDataProvider implements DataProvider {
                 }
                 updateMysqlNodeChildren(c, parentid);
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -5139,7 +5141,7 @@ public class MysqlDataProvider implements DataProvider {
                         setPublic = true;
                     //*/
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.error("Managed error: ", e);
                 }
             }
 
@@ -5265,9 +5267,9 @@ public class MysqlDataProvider implements DataProvider {
                 if (!c.getAutoCommit())
                     c.rollback();
             } catch (SQLException e1) {
-                e1.printStackTrace();
+                logger.error("Managed error: ", e1);
             }
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 c.setAutoCommit(true);
@@ -5279,7 +5281,7 @@ public class MysqlDataProvider implements DataProvider {
                     st.close();
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -5643,9 +5645,9 @@ public class MysqlDataProvider implements DataProvider {
                 if (!c.getAutoCommit())
                     c.rollback();
             } catch (SQLException e1) {
-                e1.printStackTrace();
+                logger.error("Managed error: ", e1);
             }
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 c.setAutoCommit(true);
@@ -5657,7 +5659,7 @@ public class MysqlDataProvider implements DataProvider {
                     st.close();
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -6503,8 +6505,8 @@ public class MysqlDataProvider implements DataProvider {
                         String nodeRole;
                         Node att = attribMap.getNamedItem("access");
                         //if (att != null) {
-                            //if(access.equalsIgnoreCase("public") || access.contains("public"))
-                            //	credential.postGroupRight("all",uuid,Credential.READ,portfolioUuid,userId);
+                        //if(access.equalsIgnoreCase("public") || access.contains("public"))
+                        //	credential.postGroupRight("all",uuid,Credential.READ,portfolioUuid,userId);
                         //}
                         att = attribMap.getNamedItem("seenoderoles");
                         if (att != null) {
@@ -6695,13 +6697,13 @@ public class MysqlDataProvider implements DataProvider {
 						}
 						catch(Exception ex)
 						{
-							ex.printStackTrace();
+							logger.error("Managed error: ", ex);
 						}
 						//*/
 
                     } catch (Exception e) {
                         logger.error("Error when working on rights: " + e.getMessage());
-                        e.printStackTrace();
+                        logger.error("Managed error: ", e);
                     }
                 }
                 stNoRD.close();
@@ -6803,9 +6805,9 @@ public class MysqlDataProvider implements DataProvider {
                 if (!c.getAutoCommit())
                     c.rollback();
             } catch (SQLException e1) {
-                e1.printStackTrace();
+                logger.error("Managed error: ", e1);
             }
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 c.setAutoCommit(true);
@@ -6819,11 +6821,11 @@ public class MysqlDataProvider implements DataProvider {
 
                 touchPortfolio(c, destUuid, null);
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
-		if (logger.isTraceEnabled()) {
+        if (logger.isTraceEnabled()) {
             logger.trace((t1 - start) + "," + (t1e - t1) + "," + (t2 - t1e) + "," + (t3 - t2) + "," + (t4 - t3) + "," + (t5 - t4) + "," + (t6 - t5) + "," + (t7 - t6) + "," + (t8 - t7) + "," + (t9 - t8) + "," + (t10 - t9) + "," + (t11 - t10) + "," + (t12 - t11) + "," + (t13 - t12) + "," + (t14 - t13) + "," + (t15 - t14) + "," + (t16 - t15) + "," + (t17 - t16) + "," + (t18 - t17) + "," + (t19 - t18) + "," + (t20 - t19) + "," + (t21 - t20) + "," + (t22 - t21) + "," + (t23 - t22) + "," + (end - t23));
             logger.trace("---- Import ---");
             logger.trace("d0-1: " + (t1 - start));
@@ -7393,9 +7395,9 @@ public class MysqlDataProvider implements DataProvider {
                 if (!c.getAutoCommit())
                     c.rollback();
             } catch (SQLException e1) {
-                e1.printStackTrace();
+                logger.error("Managed error: ", e1);
             }
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 c.setAutoCommit(true);
@@ -7409,7 +7411,7 @@ public class MysqlDataProvider implements DataProvider {
 
                 touchPortfolio(c, destUuid, null);
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -7476,14 +7478,14 @@ public class MysqlDataProvider implements DataProvider {
             try {
                 c.rollback();
             } catch (SQLException e1) {
-                e1.printStackTrace();
+                logger.error("Managed error: ", e1);
             }
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 c.setAutoCommit(true);
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -7576,14 +7578,14 @@ public class MysqlDataProvider implements DataProvider {
             try {
                 c.rollback();
             } catch (SQLException e1) {
-                e1.printStackTrace();
+                logger.error("Managed error: ", e1);
             }
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 c.setAutoCommit(true);
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -7764,7 +7766,7 @@ public class MysqlDataProvider implements DataProvider {
 
         long t_udpateNode = System.currentTimeMillis();
 
-		if (logger.isTraceEnabled()) {
+        if (logger.isTraceEnabled()) {
             final long d_rights = t_rights - t_start;
             final long d_parsexml = t_parsexml - t_rights;
             final long d_parsenode = t_endparsing - t_parsexml;
@@ -7805,8 +7807,8 @@ public class MysqlDataProvider implements DataProvider {
         String rootNodeUuid = "";
         try {
             rootNodeUuid = getPortfolioRootNode(c, portfolioUuid);
-        } catch (SQLException e2) {
-            e2.printStackTrace();
+        } catch (SQLException e) {
+            logger.error("Managed error: ", e);
         }
 
         if (!cred.isAdmin(c, userId) && !cred.isDesigner(c, userId, rootNodeUuid) && !cred.isCreator(c, userId))
@@ -7871,9 +7873,9 @@ public class MysqlDataProvider implements DataProvider {
             try {
                 c.rollback();
             } catch (SQLException e1) {
-                e1.printStackTrace();
+                logger.error("Managed error: ", e1);
             }
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
         } finally {
             try {
                 c.setAutoCommit(true);
@@ -7882,7 +7884,7 @@ public class MysqlDataProvider implements DataProvider {
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -7915,9 +7917,9 @@ public class MysqlDataProvider implements DataProvider {
                 c.rollback();
                 c.setAutoCommit(true);
             } catch (SQLException e1) {
-                e1.printStackTrace();
+                logger.error("Managed error: ", e1);
             }
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
         } finally {
             try {
                 if (rs != null)
@@ -7925,7 +7927,7 @@ public class MysqlDataProvider implements DataProvider {
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -8411,7 +8413,7 @@ public class MysqlDataProvider implements DataProvider {
 
             return st.executeUpdate();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
             return null;
         }
     }
@@ -8431,7 +8433,7 @@ public class MysqlDataProvider implements DataProvider {
             if (res.next())
                 ret = res.getString("userid");
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
         }
         return ret;
     }
@@ -8672,7 +8674,7 @@ public class MysqlDataProvider implements DataProvider {
             stInsert.executeUpdate();
             return true;
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
             return false;
         }
     }
@@ -8693,7 +8695,7 @@ public class MysqlDataProvider implements DataProvider {
             stUpdate.executeUpdate();
             return true;
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
             return false;
         }
     }
@@ -8719,7 +8721,7 @@ public class MysqlDataProvider implements DataProvider {
 
             ret = true;
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         }
 
         return ret;
@@ -8819,16 +8821,16 @@ public class MysqlDataProvider implements DataProvider {
                 c.rollback();
                 c.setAutoCommit(true);
             } catch (SQLException e1) {
-                e1.printStackTrace();
+                logger.error("Managed error: ", e1);
             }
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 c.setAutoCommit(true);
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -8870,14 +8872,14 @@ public class MysqlDataProvider implements DataProvider {
             try {
                 c.rollback();
             } catch (SQLException e1) {
-                e1.printStackTrace();
+                logger.error("Managed error: ", e1);
             }
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 c.setAutoCommit(true);
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -8916,14 +8918,14 @@ public class MysqlDataProvider implements DataProvider {
             try {
                 c.rollback();
             } catch (SQLException e1) {
-                e1.printStackTrace();
+                logger.error("Managed error: ", e1);
             }
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 c.setAutoCommit(true);
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -8950,7 +8952,7 @@ public class MysqlDataProvider implements DataProvider {
             result = 1;
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
             result = -1;
         }
         return result;
@@ -8984,7 +8986,7 @@ public class MysqlDataProvider implements DataProvider {
 
             status = 0;
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         }
 
         return status;
@@ -9198,7 +9200,7 @@ public class MysqlDataProvider implements DataProvider {
                 } catch (Exception ex) {
                     // Le nom du fichier ne commence pas par un UUID,
                     // ce n'est donc pas une ressource
-                    ex.printStackTrace();
+                    logger.error("Managed error: ", ex);
                 }
             }
 
@@ -9458,7 +9460,7 @@ public class MysqlDataProvider implements DataProvider {
 
             return st.executeQuery();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
             return null;
         }
     }
@@ -9501,7 +9503,7 @@ public class MysqlDataProvider implements DataProvider {
 
             return st.executeQuery();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         }
 
         return null;
@@ -9550,7 +9552,7 @@ public class MysqlDataProvider implements DataProvider {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
             return "<users></users>";
         }
 
@@ -9626,7 +9628,7 @@ public class MysqlDataProvider implements DataProvider {
                     result += "</user>";
 
                 } catch (SQLException e) {
-                    e.printStackTrace();
+                    logger.error("Managed error: ", e);
                 }
             } else {
                 return "User " + userid + " not found";
@@ -9667,7 +9669,7 @@ public class MysqlDataProvider implements DataProvider {
             }
             result.append("</profile>");
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         }
 
         result.append("</profiles>");
@@ -9702,7 +9704,7 @@ public class MysqlDataProvider implements DataProvider {
             doc = DomUtils.xmlString2Document(in, new StringBuffer());
             infUser = doc.getDocumentElement();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         }
 
         NodeList children = null;
@@ -9986,7 +9988,7 @@ public class MysqlDataProvider implements DataProvider {
             doc = DomUtils.xmlString2Document(in, new StringBuffer());
             infUser = doc.getDocumentElement();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         }
 
         NodeList children = infUser.getChildNodes();
@@ -10235,7 +10237,7 @@ public class MysqlDataProvider implements DataProvider {
             }
         } catch (SQLException e) {
             logger.error(e.getMessage());
-            //			e.printStackTrace();
+            //			logger.error("Managed error: ", e);
             c.rollback();
             result = "Error when processing user: " + username;
         } finally {
@@ -10341,7 +10343,7 @@ public class MysqlDataProvider implements DataProvider {
                     "</credential>";
             returnValue[0] = credential;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         }
 
         return returnValue;
@@ -10361,7 +10363,7 @@ public class MysqlDataProvider implements DataProvider {
             res.next();
             return res;
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
             return null;
         }
 
@@ -10399,7 +10401,7 @@ public class MysqlDataProvider implements DataProvider {
 //			xml = getNodeXmlOutput(nodeUuid,true,null,userId, groupId, null,true).toString();
             return DomUtils.processXSLTfile2String(DomUtils.xmlString2Document(xml, new StringBuffer()), xslFile, param, paramVal, new StringBuffer());
         } catch (Exception e) {
-//			e.printStackTrace();
+//			logger.error("Managed error: ", e);
             logger.error("Managed error:", e);
             return null;
         }
@@ -10444,7 +10446,7 @@ public class MysqlDataProvider implements DataProvider {
 
             return st.executeQuery();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         }
 
         return null;
@@ -10479,7 +10481,7 @@ public class MysqlDataProvider implements DataProvider {
 
             return result.toString();
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
             return null;
         }
     }
@@ -10545,7 +10547,7 @@ public class MysqlDataProvider implements DataProvider {
                 }
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
             return null;
         } finally {
             try {
@@ -10554,7 +10556,7 @@ public class MysqlDataProvider implements DataProvider {
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -10726,7 +10728,7 @@ public class MysqlDataProvider implements DataProvider {
 
             return st.executeUpdate();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
             return -1;
         }
     }
@@ -10743,7 +10745,7 @@ public class MysqlDataProvider implements DataProvider {
             st.setString(2, semantictag);
             return st.executeQuery();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
             return null;
         }
     }
@@ -10761,7 +10763,7 @@ public class MysqlDataProvider implements DataProvider {
             st.setString(2, role);
             res = st.executeQuery();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
             return null;
         }
 
@@ -10778,7 +10780,7 @@ public class MysqlDataProvider implements DataProvider {
                 result.append("</user>");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         }
 
         result.append("</users>");
@@ -10800,7 +10802,7 @@ public class MysqlDataProvider implements DataProvider {
             st.setString(2, role);
             res = st.executeQuery();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
             return null;
         }
 
@@ -10810,7 +10812,7 @@ public class MysqlDataProvider implements DataProvider {
                 result.append(DomUtils.getXmlElementOutput("group", res.getString("gid")));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         }
 
         result.append("</groups>");
@@ -10865,7 +10867,7 @@ public class MysqlDataProvider implements DataProvider {
             if (res.next())
                 status = res.getString("content");
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             if (st != null) try {
                 st.close();
@@ -10941,7 +10943,7 @@ public class MysqlDataProvider implements DataProvider {
             result = stw.toString();
         } catch (Exception e) {
             logger.error("Intercepted error", e);
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
             return result;
         }
 
@@ -11087,7 +11089,7 @@ public class MysqlDataProvider implements DataProvider {
 
             return st.executeQuery();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
             return null;
         }
     }
@@ -11112,7 +11114,7 @@ public class MysqlDataProvider implements DataProvider {
 
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
             return null;
         }
 
@@ -11279,7 +11281,7 @@ public class MysqlDataProvider implements DataProvider {
                 id = rs.getInt(1);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         }
 
         result = "" + id;
@@ -11311,7 +11313,7 @@ public class MysqlDataProvider implements DataProvider {
                 result.append("</model>");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
             return null;
         }
         result.append("</models> ");
@@ -11342,7 +11344,7 @@ public class MysqlDataProvider implements DataProvider {
                 result.append("</model>");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
             return null;
         }
 
@@ -11415,7 +11417,7 @@ public class MysqlDataProvider implements DataProvider {
             /// Ajoute un droit dans la table
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         }
 
         return meta;
@@ -11773,9 +11775,8 @@ public class MysqlDataProvider implements DataProvider {
             Element rootMeta = doc.getDocumentElement();
 
             NamedNodeMap metaAttr = rootMeta.getAttributes();
-            int teachergroup = getRoleByNode(c, 1, nodeUuid, "enseignant");    // Check for the possibility of teacher group
             int resetgroup = getRoleByNode(c, 1, nodeUuid, "resetter");    // Check for the possibility of resetter group
-            if ("reset".equals(macroName) && (cred.isAdmin(c, userId) || cred.isUserMemberOfRole(c, userId, resetgroup) || cred.isUserMemberOfRole(c, userId, teachergroup)))    // Admin, or part of resetter group / teacher group
+            if ("reset".equals(macroName) && (cred.isAdmin(c, userId) || cred.isUserMemberOfRole(c, userId, resetgroup)))    // Admin, or part of resetter group
             {
                 /// if reset and admin
                 // Call specific function to process current temporary table
@@ -12127,7 +12128,7 @@ public class MysqlDataProvider implements DataProvider {
             }
             val = "OK";
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 // Les 'pooled connection' ne se ferment pas vraiment. On nettoie manuellement les tables temporaires...
@@ -12138,7 +12139,7 @@ public class MysqlDataProvider implements DataProvider {
                     st.close();
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -12391,7 +12392,7 @@ public class MysqlDataProvider implements DataProvider {
                     stu.executeUpdate();
                     stu.close();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.error("Managed error: ", e);
                 }
             }
             res.close();
@@ -12449,14 +12450,14 @@ public class MysqlDataProvider implements DataProvider {
                 if (!c.getAutoCommit())
                     c.rollback();
             } catch (SQLException e1) {
-                e1.printStackTrace();
+                logger.error("Managed error: ", e1);
             }
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 c.setAutoCommit(true);
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -12570,7 +12571,7 @@ public class MysqlDataProvider implements DataProvider {
             serializer.transform(source, stream);
             return stw.toString();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         }
 
         return "";
@@ -12663,7 +12664,7 @@ public class MysqlDataProvider implements DataProvider {
             serializer.transform(source, stream);
             return stw.toString();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         }
 
         return "";
@@ -12773,7 +12774,7 @@ public class MysqlDataProvider implements DataProvider {
             InputSource is = new InputSource(new StringReader(data));
             document = documentBuilder.parse(is);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         }
 
         /// Probleme de parsage
@@ -12813,7 +12814,7 @@ public class MysqlDataProvider implements DataProvider {
 
             st.executeUpdate();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         }
 
         return "";
@@ -12837,7 +12838,7 @@ public class MysqlDataProvider implements DataProvider {
             document = documentBuilder.parse(is);
         } catch (Exception e) {
             logger.error("Managed error:", e.getMessage());
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         }
 
         /// Probleme de parsage
@@ -12886,14 +12887,14 @@ public class MysqlDataProvider implements DataProvider {
             try {
                 c.rollback();
             } catch (SQLException e1) {
-                e1.printStackTrace();
+                logger.error("Managed error: ", e1);
             }
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 c.setAutoCommit(true);
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -12943,14 +12944,14 @@ public class MysqlDataProvider implements DataProvider {
             try {
                 c.rollback();
             } catch (SQLException e1) {
-                e1.printStackTrace();
+                logger.error("Managed error: ", e1);
             }
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 c.setAutoCommit(true);
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -13083,14 +13084,14 @@ public class MysqlDataProvider implements DataProvider {
             try {
                 c.rollback();
             } catch (SQLException e1) {
-                e1.printStackTrace();
+                logger.error("Managed error: ", e1);
             }
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 c.setAutoCommit(true);
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -13122,14 +13123,14 @@ public class MysqlDataProvider implements DataProvider {
             try {
                 c.rollback();
             } catch (SQLException e1) {
-                e1.printStackTrace();
+                logger.error("Managed error: ", e1);
             }
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 c.setAutoCommit(true);
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -13157,14 +13158,14 @@ public class MysqlDataProvider implements DataProvider {
             try {
                 c.rollback();
             } catch (SQLException e1) {
-                e1.printStackTrace();
+                logger.error("Managed error: ", e1);
             }
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 c.setAutoCommit(true);
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -13196,14 +13197,14 @@ public class MysqlDataProvider implements DataProvider {
             try {
                 c.rollback();
             } catch (SQLException e1) {
-                e1.printStackTrace();
+                logger.error("Managed error: ", e1);
             }
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 c.setAutoCommit(true);
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -13232,7 +13233,7 @@ public class MysqlDataProvider implements DataProvider {
             st.setInt(2, uid);
             retval = st.executeUpdate();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
         }
 
         return retval;
@@ -13271,7 +13272,7 @@ public class MysqlDataProvider implements DataProvider {
 
         } catch (SQLException e) {
             logger.error(e.getMessage());
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 if (res != null)
@@ -13279,7 +13280,7 @@ public class MysqlDataProvider implements DataProvider {
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -13306,7 +13307,7 @@ public class MysqlDataProvider implements DataProvider {
                 result.append("</group>");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 if (res != null)
@@ -13314,7 +13315,7 @@ public class MysqlDataProvider implements DataProvider {
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -13341,7 +13342,7 @@ public class MysqlDataProvider implements DataProvider {
                 groupId = res.getInt("cg");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 if (res != null)
@@ -13349,7 +13350,7 @@ public class MysqlDataProvider implements DataProvider {
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -13378,7 +13379,7 @@ public class MysqlDataProvider implements DataProvider {
                 result.append("</group>");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 if (res != null)
@@ -13386,7 +13387,7 @@ public class MysqlDataProvider implements DataProvider {
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
         result.append("</groups>");
@@ -13413,7 +13414,7 @@ public class MysqlDataProvider implements DataProvider {
                 result.append("</user>");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 if (res != null)
@@ -13421,7 +13422,7 @@ public class MysqlDataProvider implements DataProvider {
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -13445,13 +13446,13 @@ public class MysqlDataProvider implements DataProvider {
             st.execute();
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -13473,13 +13474,13 @@ public class MysqlDataProvider implements DataProvider {
             st.execute();
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -13509,13 +13510,13 @@ public class MysqlDataProvider implements DataProvider {
             c.setAutoCommit(true);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -13536,13 +13537,13 @@ public class MysqlDataProvider implements DataProvider {
             st.setInt(2, userId);
             st.execute();
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -13602,7 +13603,7 @@ public class MysqlDataProvider implements DataProvider {
 
         } catch (SQLException e) {
             logger.error(e.getMessage());
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 if (res != null)
@@ -13610,7 +13611,7 @@ public class MysqlDataProvider implements DataProvider {
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -13635,7 +13636,7 @@ public class MysqlDataProvider implements DataProvider {
                 groupid = res.getInt("pg");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 if (res != null)
@@ -13643,7 +13644,7 @@ public class MysqlDataProvider implements DataProvider {
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -13677,7 +13678,7 @@ public class MysqlDataProvider implements DataProvider {
 //				result += "</portfolio>";
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 if (res != null)
@@ -13685,7 +13686,7 @@ public class MysqlDataProvider implements DataProvider {
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -13765,7 +13766,7 @@ public class MysqlDataProvider implements DataProvider {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 if (res != null)
@@ -13773,7 +13774,7 @@ public class MysqlDataProvider implements DataProvider {
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -13810,7 +13811,7 @@ public class MysqlDataProvider implements DataProvider {
 //				result += "</portfolio>";
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 if (res != null)
@@ -13818,7 +13819,7 @@ public class MysqlDataProvider implements DataProvider {
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -13870,7 +13871,7 @@ public class MysqlDataProvider implements DataProvider {
                 st.executeUpdate();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 if (res != null)
@@ -13878,7 +13879,7 @@ public class MysqlDataProvider implements DataProvider {
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -13907,13 +13908,13 @@ public class MysqlDataProvider implements DataProvider {
             c.setAutoCommit(true);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -13933,13 +13934,13 @@ public class MysqlDataProvider implements DataProvider {
             st.setString(2, uuid);
             st.execute();
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             try {
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -14171,7 +14172,7 @@ public class MysqlDataProvider implements DataProvider {
                     }
                     result.append("</nodes>");
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    logger.error("Managed error: ", ex);
                     return null;
                 }
 
@@ -14190,7 +14191,7 @@ public class MysqlDataProvider implements DataProvider {
                     try {
                         res1 = getMysqlNodeUuidBySemanticTag(c, pid, semtag);
                     } catch (Exception ex) {
-                        ex.printStackTrace();
+                        logger.error("Managed error: ", ex);
                         return null;
                     }
 
@@ -14220,9 +14221,9 @@ public class MysqlDataProvider implements DataProvider {
                     st.close();
                 }
             } catch (SQLException se) {
-                se.printStackTrace();
+                logger.error("Managed error: ", e);
             }
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         } finally {
             // Les 'pooled connection' ne se ferment pas vraiment. On nettoie manuellement les tables temporaires...
             if (dbserveur.equals("mysql")) {
@@ -14264,12 +14265,93 @@ public class MysqlDataProvider implements DataProvider {
             }
             out.append("</portfolios>");
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
         }
 
         return out.toString();
     }
 
+    @Override
+    public ArrayList<Pair<String, String>> getPortfolioUniqueFile( Connection c, String portfolioUuid, int userId ) throws Exception
+    {
+        PreparedStatement st = null;
+        ResultSet rs = null;
+        String sql;
+        ArrayList<Pair<String, String>> retval = new ArrayList<Pair<String,String>>();
+
+        try {
+            /// Small temp table
+            sql = "CREATE TEMPORARY TABLE t_fileid(" +
+                    "resuuid char(36), " +
+                    "fileid VARCHAR(64) NOT NULL) ENGINE=MEMORY DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;";
+            st = c.prepareStatement(sql);
+            st.executeUpdate();
+            st.close();
+
+            /// Insert added files in portfolio
+            sql = "INSERT INTO t_fileid \n" +
+                    "SELECT bin2uuid(n.node_uuid), " +
+                    "CONCAT(\"%\",REGEXP_SUBSTR(content, \"fileid[^>]*>[^<]+\"),\"%\") " +
+                    "FROM node n, resource_table rt " +
+                    "WHERE n.portfolio_id=uuid2bin(?) AND " +
+                    "n.res_node_uuid=rt.node_uuid AND " +
+                    "content LIKE \"%fileid%\";";
+            st = c.prepareStatement(sql);
+            st.setString(1, portfolioUuid);
+            st.executeUpdate();
+            st.close();
+
+            /// Clear empty values
+            sql = "DELETE FROM t_fileid WHERE fileid=\"%%\";";
+            st = c.prepareStatement(sql);
+            st.executeUpdate();
+            st.close();
+
+            /// Check referenced file count
+            sql = "SELECT COUNT(*) AS fcount, t.resuuid, t.fileid " +
+                    "FROM resource_table rt, t_fileid t " +
+                    "WHERE rt.content LIKE t.fileid " +
+                    "GROUP BY t.fileid ORDER BY fcount;";
+            st = c.prepareStatement(sql);
+            rs = st.executeQuery();
+
+            while( rs.next() )
+            {
+                int count = rs.getInt(1);
+                /// Only keep value where count is 1
+                if(count > 1) break;	// Values are ordered
+
+                String nodeuuid = rs.getString(2);
+                String rawfileid = rs.getString(3);
+
+                // Fetch lang and fileid
+                Matcher info = FILEID_PAT.matcher(rawfileid);
+                String lang = "";
+                if(info.find())
+                {
+                    lang = info.group(1);
+
+                    // nodeid and lang
+                    Pair<String,String> data = Pair.of(nodeuuid, lang);
+                    retval.add(data);
+                }
+
+            }
+            st.close();
+        }
+        catch( Exception e )
+        {
+            logger.error("Managed error: ", e);
+        }
+        finally {
+            sql = "DROP TEMPORARY TABLE IF EXISTS t_fileid";
+            st = c.prepareStatement(sql);
+            st.execute();
+            st.close();
+        }
+
+        return retval;
+    }
 
     @Override
     public Object getNodesParent(Connection c, MimeType mimeType, String portfoliocode, String semtag, int userId, int groupId, String semtag_parent, String code_parent) throws Exception {
@@ -14333,7 +14415,7 @@ public class MysqlDataProvider implements DataProvider {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Managed error: ", e);
 
         }
 
@@ -14368,7 +14450,7 @@ public class MysqlDataProvider implements DataProvider {
             if (res.next())
                 retval = res.getString(1);
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
         }
 
         return retval;
@@ -14442,7 +14524,7 @@ public class MysqlDataProvider implements DataProvider {
             if (res.next())
                 retval = res.getString(1);
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
         }
 
         return retval;
@@ -14485,7 +14567,7 @@ public class MysqlDataProvider implements DataProvider {
             rs.close();
             st.close();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
         }
 
         return Integer.toString(retval);
@@ -14507,7 +14589,7 @@ public class MysqlDataProvider implements DataProvider {
             if (res.next())
                 retval = true;
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
         }
 
         return retval;
@@ -14575,7 +14657,7 @@ public class MysqlDataProvider implements DataProvider {
             res.close();
             st.close();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
         }
         return retval;
     }
@@ -14613,7 +14695,7 @@ public class MysqlDataProvider implements DataProvider {
                 hasChanged = true;
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
         } finally {
             try {
                 if (res != null)
@@ -14621,7 +14703,7 @@ public class MysqlDataProvider implements DataProvider {
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -14652,7 +14734,7 @@ public class MysqlDataProvider implements DataProvider {
                 data[2] = Integer.toString(userid);
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
         } finally {
             try {
                 if (res != null)
@@ -14660,7 +14742,7 @@ public class MysqlDataProvider implements DataProvider {
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -14687,7 +14769,7 @@ public class MysqlDataProvider implements DataProvider {
             if (res.next())
                 email = res.getString(1);
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
         } finally {
             try {
                 if (res != null)
@@ -14695,7 +14777,7 @@ public class MysqlDataProvider implements DataProvider {
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -14719,7 +14801,7 @@ public class MysqlDataProvider implements DataProvider {
 
             changed = true;
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
         } finally {
             try {
                 if (res != null)
@@ -14727,7 +14809,7 @@ public class MysqlDataProvider implements DataProvider {
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
@@ -14761,7 +14843,7 @@ public class MysqlDataProvider implements DataProvider {
                 changed = true;
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Managed error: ", ex);
         } finally {
             try {
                 if (res != null)
@@ -14769,7 +14851,7 @@ public class MysqlDataProvider implements DataProvider {
                 if (st != null)
                     st.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Managed error: ", e);
             }
         }
 
