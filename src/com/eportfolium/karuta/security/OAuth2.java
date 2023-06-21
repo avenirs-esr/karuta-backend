@@ -27,6 +27,7 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -84,8 +85,8 @@ public class OAuth2 extends HttpServlet {
             dataProvider = SqlUtils.initProvider();
             defaultRedirectLocation = ConfigUtils.getInstance().getRequiredProperty("ui_redirect_location");
         } catch (Exception e) {
-           logger.error("Can't init servlet", e);
-           throw new ServletException(e);
+            logger.error("Can't init servlet", e);
+            throw new ServletException(e);
         }
     }
 
@@ -146,7 +147,7 @@ public class OAuth2 extends HttpServlet {
                 connection.setRequestMethod("POST");
                 connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
-				logger.debug("Connecting to: {} data: {}", URLToken, authdata);
+                logger.debug("Connecting to: {} data: {}", URLToken, authdata);
 
                 /// Receiving login information
                 ByteArrayInputStream bais = new ByteArrayInputStream(authdata.getBytes());
@@ -176,7 +177,7 @@ public class OAuth2 extends HttpServlet {
                         id_token = pmatcher.group(1);
                     }
                     try {
-						logger.debug("Processing =====\n{}\n================", id_token);
+                        logger.debug("Processing =====\n{}\n================", id_token);
                         //// Decoding
                         JwtConsumer firstPassJwtConsumer = new JwtConsumerBuilder()
                                 .setSkipAllValidators()
@@ -211,22 +212,33 @@ public class OAuth2 extends HttpServlet {
                         String username = (String) claims.getClaimValue("preferred_username");
 
                         //// Now log with username
-                        Connection connexion = SqlUtils.getConnection();
-                        String userId = dataProvider.getUserId(connexion, username, null);
-                        int uid = Integer.parseInt(userId);
-                        if (uid == 0) {
-                            userId = dataProvider.createUser(connexion, username, null);
-                            uid = Integer.parseInt(userId);
+                        Connection connexion = null;
+                        try {
+                            connexion = SqlUtils.getConnection();
+                            String userId = dataProvider.getUserId(connexion, username, null);
+                            int uid = Integer.parseInt(userId);
+                            if (uid == 0) {
+                                userId = dataProvider.createUser(connexion, username, null);
+                                uid = Integer.parseInt(userId);
+                            }
+                            session.setAttribute("uid", uid);
+                            session.setAttribute("user", username);
+                            session.setAttribute("fromoauth", 1);
+                        } catch( Exception e ) {
+                            logger.error("Managed error", e);
+                        } finally {
+                            try {
+                                if( connexion != null ) connexion.close();
+                            } catch (SQLException e) {
+                                logger.error("Managed error", e);
+                            }
                         }
-                        session.setAttribute("uid", uid);
-                        session.setAttribute("user", username);
-                        session.setAttribute("fromoauth", 1);
 
                         /// Redirect to front-end
                         response.sendRedirect(defaultRedirectLocation);
 
                         request.getReader().close();
-						logger.debug("data: {} -- {}, Code ({}) msg {}", name, username, retcode, msg);
+                        logger.debug("data: {} -- {}, Code ({}) msg {}", name, username, retcode, msg);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -252,7 +264,7 @@ public class OAuth2 extends HttpServlet {
             final String urlQuery = String.format("%s?response_type=%s&client_id=%s&redirect_uri=%s&scope=%s&state=%s&nonce=%s",
                     URLAuthorize, response_type, client_id, redirect_uri, scope, state, nonce);
 
-			logger.debug("Redirect to: {}", urlQuery);
+            logger.debug("Redirect to: {}", urlQuery);
 
             /// Keep it for return call
             session.setAttribute("state", state);
