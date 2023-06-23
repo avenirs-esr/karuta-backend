@@ -1,15 +1,17 @@
-/**
- * 	Copyright 2014 - ePortfolium - Licensed under the
- * 	Educational Community License, Version 2.0 (the "License"); you may
- * 	not use this file except in compliance with the License. You may
- * 	obtain a copy of the License at
- * 	http://www.osedu.org/licenses/ECL-2.0
- * 	Unless required by applicable law or agreed to in writing,
- * 	software distributed under the License is distributed on an "AS IS"
- * 	BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * 	or implied. See the License for the specific language governing
- * 	permissions and limitations under the License.
- */
+/* =======================================================
+	Copyright 2014 - ePortfolium - Licensed under the
+	Educational Community License, Version 2.0 (the "License"); you may
+	not use this file except in compliance with the License. You may
+	obtain a copy of the License at
+
+	http://www.osedu.org/licenses/ECL-2.0
+
+	Unless required by applicable law or agreed to in writing,
+	software distributed under the License is distributed on an "AS IS"
+	BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+	or implied. See the License for the specific language governing
+	permissions and limitations under the License.
+   ======================================================= */
 
 package com.eportfolium.karuta.security;
 
@@ -32,7 +34,7 @@ import org.slf4j.LoggerFactory;
 public class Credential {
     private static final Logger logger = LoggerFactory.getLogger(Credential.class);
 
-    // private final Connection connection;
+    //	private final Connection connection;
     public static final String NONE = "none";
     public static final String ADD = "add";
     public static final String READ = "read";
@@ -61,17 +63,17 @@ public class Credential {
         String label = "all";
 
         try {
-            /// Requete SQL qui cherche le grid du gr "all" en fonction du portfolioid
-            sql = "SELECT grid FROM group_right_info gr WHERE portfolio_id = uuid2bin(?) AND label = ? ";
-            st = c.prepareStatement(sql);
-            st.setString(1, portfolio_id);
-            st.setString(2, label);
-            res = st.executeQuery();
+                /// Requete SQL qui cherche le grid du gr "all" en fonction du portfolioid
+                sql = "SELECT grid FROM group_right_info gr WHERE portfolio_id = uuid2bin(?) AND label = ? ";
+                st = c.prepareStatement(sql);
+                st.setString(1, portfolio_id);
+                st.setString(2, label);
+                res = st.executeQuery();
 
-            if (res.next()) {
-                grid = res.getInt("grid");
-            }
-            return grid;
+                if (res.next()) {
+                    grid = res.getInt("grid");
+                }
+                return grid;
         } catch (Exception ex) {
             logger.error("Managed error", ex);
             return grid;
@@ -134,7 +136,7 @@ public class Credential {
 
 
     //test pour l'affichage du getPortfolio
-    public NodeRight getPortfolioRight(Connection c, int userId, int groupId, String portfolioUuid, String droit) {
+    public NodeRight getPortfolioRight(Connection c, int userId, int groupId, String portfolioUuid, String droit, String userRole) {
         PreparedStatement st;
         String sql;
         ResultSet res;
@@ -153,7 +155,7 @@ public class Credential {
                 if (res.getInt("modif_user_id") == userId)    // Is the owner
                     reponse.add = reponse.delete = reponse.read = reponse.write = true;
                 else    // General case
-                    reponse = getNodeRight(c, userId, groupId, res.getString("root_node_uuid"), droit);
+                    reponse = getNodeRight(c, userId, groupId, res.getString("root_node_uuid"), droit, userRole);
             }
         } catch (Exception ex) {
             logger.error("Managed Error:", ex);
@@ -215,7 +217,7 @@ public class Credential {
     }
 
     public boolean hasNodeRight(Connection c, int userId, int groupId, String node_uuid, String droit) {
-        NodeRight nodeRight = getNodeRight(c, userId, groupId, node_uuid, null);
+        NodeRight nodeRight = getNodeRight(c, userId, groupId, node_uuid, null, null);
         switch (droit) {
             case READ:
                 return nodeRight.read;
@@ -231,13 +233,22 @@ public class Credential {
     }
 
     //test pour l'affichage des differentes methodes de Node
-    public NodeRight getNodeRight(Connection c, int userId, int groupId, String node_uuid, String label) {
+    public NodeRight getNodeRight(Connection c, int userId, int groupId, String node_uuid, String rightType, String userRole ) {
         PreparedStatement st = null;
         String sql;
         ResultSet res = null;
 
         // On initialise les droits à false : par defaut accès à rien
         NodeRight nodeRight = new NodeRight(false, false, false, false, false, false);
+
+        // If userrole specified, use it if something is found
+        int groupid = getGroupid(c, userRole, node_uuid);
+        if ( groupid != -1 )
+        {
+        	groupId = groupid;
+        	nodeRight.groupId = groupId;
+        	nodeRight.groupLabel = userRole;
+        }
 
         try {
             long t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0, t6 = 0;
@@ -370,7 +381,7 @@ public class Credential {
             }
             t6 = System.currentTimeMillis();
 
-            if (logger.isTraceEnabled()) {
+			if (logger.isTraceEnabled()) {
                 final long checkSysInfo = t1 - t0;
                 final long groupSelect = t2 - t1;
                 final long rightFromGroup = t3 - t2;
@@ -697,6 +708,7 @@ public class Credential {
                             st.setString(6, uuid);
                             st.executeUpdate();
                         } catch (Exception ex) {
+
                             logger.error("Managed Error:", ex);
                         } finally {
                             if (st != null) try {
@@ -928,8 +940,7 @@ public class Credential {
                                     st.executeUpdate();
                                     break;
                                 default:
-// Les droits d'exécuter des actions. FIXME Pas propre, à changer plus tard.
-
+                            // Les droits d'exécuter des actions. FIXME Pas propre, à changer plus tard.
                                     sqlUpdate = "UPDATE group_rights SET rules_id = ? WHERE grid = ? AND id = uuid2bin(?)";
                                     st = c.prepareStatement(sqlUpdate);
                                     st.setString(1, droit);
@@ -1392,24 +1403,50 @@ public class Credential {
     }
 
     public String getUsername( Connection c, Integer userId ) {
-        if( userId == null )
-            return "";
+    	if( userId == null )
+    		return "";
 
-        ResultSet rs = null;
-        PreparedStatement stmt = null;
-        try {
-            String query = "SELECT login FROM credential WHERE userid=?;";
-            stmt = c.prepareStatement(query);
-            stmt.setInt(1, userId);
-            rs = stmt.executeQuery();
+    	ResultSet rs = null;
+    	PreparedStatement stmt = null;
+    	try {
+    		String query = "SELECT login FROM credential WHERE userid=?;";
+    		stmt = c.prepareStatement(query);
+    		stmt.setInt(1, userId);
+    		rs = stmt.executeQuery();
 
-            if( rs.next() )
-                return rs.getString(1);
-        } catch (SQLException e) {
+    		if( rs.next() )
+    			return rs.getString(1);
+    	} catch (SQLException e) {
             logger.error("Managed Error:", e);
-            return "";
-        }
-        return "";
+    		return "";
+    	}
+    	return "";
     }
+
+    public int getGroupid(Connection c, String role, String nodeUuid) {
+      if (role == null || nodeUuid == null)
+          return -1;
+
+      ///
+      ResultSet rs = null;
+      PreparedStatement stmt = null;
+      try {
+          String query = "SELECT gri.grid " +
+                  "FROM group_info gi, group_right_info gri, node n " +
+                  "WHERE n.node_uuid=uuid2bin(?) AND n.portfolio_id=gri.portfolio_id AND gri.grid=gi.grid " +
+                  "AND gi.label=?;";
+          stmt = c.prepareStatement(query);
+          stmt.setString(1, nodeUuid);
+          stmt.setString(2, role);
+          rs = stmt.executeQuery();
+
+          if (rs.next())
+              return rs.getInt(1);
+      } catch (SQLException e) {
+          logger.error("Managed Error:", e);
+          return -1;
+      }
+      return -1;
+  }
 
 }
