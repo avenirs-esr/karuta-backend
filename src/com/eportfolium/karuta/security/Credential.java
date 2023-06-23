@@ -1448,5 +1448,31 @@ public class Credential {
       }
       return -1;
   }
+  
+    public boolean hasRightInPortfolio( Connection c, int userId, String nodeUuid ) {
+    	if( nodeUuid == null )
+    		return false;
+    	
+      ResultSet rs = null;
+      PreparedStatement stmt = null;
+      try {
+          String query = "SELECT gri.grid " +
+                  "FROM group_user gu, group_info gi, group_right_info gri, node n " +
+                  "WHERE gu.userid=? AND gu.gid=gi.gid AND gri.grid=gi.grid AND " +
+                  "gri.portfolio_id=n.portfolio_id AND n.node_uuid=uuid2bin(?);";
+          stmt = c.prepareStatement(query);
+          stmt.setInt(1, userId);
+          stmt.setString(2, nodeUuid);
+          rs = stmt.executeQuery();
+
+          if (rs.next())
+              return true;
+      } catch (SQLException e) {
+          logger.error("Managed Error:", e);
+          return false;
+      }
+    	
+    	return false;
+  }
 
 }
