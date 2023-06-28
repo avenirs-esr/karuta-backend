@@ -240,18 +240,19 @@ public class DirectURLService extends HttpServlet {
                         session.setAttribute("uid", uid);
                         session.setAttribute("source", "public.htm");
 
-                        String referer = (String) request.getHeader("referer");    // Can be spoofed
+                        String referer = request.getHeader("referer");    // Can be spoofed
 						logger.debug("Login from source: {}", referer);
                     }
                     break;
 
                 case 0:    // Just ask for login
+                default:
                     break;
             }
 
 
-            if (login != null)    // If account exists
-            {
+//            if (login != null)    // If account exists
+//            {
 
                 //// FIXME: Make it so we create account and put this new account in the uuid/role group
 
@@ -273,10 +274,10 @@ public class DirectURLService extends HttpServlet {
 				//*/
 
                 /// Check if person exist
-            } else    // User doesn't exists
-            {
-                //TODO something is missing
-            }
+//            } else    // User doesn't exists
+//            {
+//                //TODO something is missing
+//            }
 
         } catch (Exception e) {
             logger.error("Intercepted error:", e);

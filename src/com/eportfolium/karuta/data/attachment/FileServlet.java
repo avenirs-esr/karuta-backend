@@ -56,11 +56,11 @@ import javax.xml.xpath.XPathFactory;
 
 import com.eportfolium.karuta.data.provider.DataProvider;
 import com.eportfolium.karuta.data.utils.ConfigUtils;
-import com.google.gson.stream.JsonWriter;
 import com.eportfolium.karuta.data.utils.HttpClientUtils;
 import com.eportfolium.karuta.data.utils.SqlUtils;
 import com.eportfolium.karuta.rest.RestWebApplicationException;
 import com.eportfolium.karuta.security.Credential;
+import com.google.gson.stream.JsonWriter;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -300,7 +300,7 @@ public class FileServlet extends HttpServlet {
                     }
                 } else {
                     // List headers
-                    Enumeration attributes = request.getAttributeNames();
+                    Enumeration<String> attributes = request.getAttributeNames();
                     while (attributes.hasMoreElements()) {
                         Object elem = attributes.nextElement();
                         logger.error("Object: " + elem.toString());
@@ -542,7 +542,7 @@ public class FileServlet extends HttpServlet {
                     }
                 } else {
                     // List headers
-                    Enumeration attributes = request.getAttributeNames();
+                    Enumeration<String> attributes = request.getAttributeNames();
                     while (attributes.hasMoreElements()) {
                         Object elem = attributes.nextElement();
                         logger.error("Object: " + elem.toString());

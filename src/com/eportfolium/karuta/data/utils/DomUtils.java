@@ -397,7 +397,7 @@ return result.getWriter().toString();
 		String xmlString = "";
 		try{
 			reqSQL = "SELECT xml FROM tree where id="+id;
-			ps = (PreparedStatement) connexion.prepareStatement(reqSQL);
+			ps = connexion.prepareStatement(reqSQL);
 			rs = ps.executeQuery();
 			if (rs.next()) {
 				xmlString = rs.getString(1);
