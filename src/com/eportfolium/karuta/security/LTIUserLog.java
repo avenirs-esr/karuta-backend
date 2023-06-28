@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 /**
  * This class will create a log entry containing the LMS system's user ID, user EID,
  * the WAD system's user ID, along with the LTI consumer key
- * @author Chris Maurer<maurercw@gmail.com>
+ * @author Chris Maurer - maurercw@gmail.com
  *
  */
 public class LTIUserLog {
