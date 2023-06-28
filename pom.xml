@@ -47,6 +47,8 @@
     </distributionManagement>
 
     <properties>
+        <check.java.version>11</check.java.version>
+        <check.maven.version>3.6.0</check.maven.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <JACKSON_VER>1.9.13</JACKSON_VER>
         <JERSEY_VER>2.34</JERSEY_VER>
@@ -458,6 +460,36 @@
                     <downloadSources>true</downloadSources>
                     <downloadJavadocs>true</downloadJavadocs>
                     <wtpversion>2.0</wtpversion>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>enforce-versions</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <rules>
+                        <requireProperty>
+                            <property>check.java.version</property>
+                            <message>You must set the property `check.java.version`</message>
+                            <regex>[\d.-_]*</regex>
+                        </requireProperty>
+                        <requireMavenVersion>
+                            <message>You are running an older version of Maven. At least Maven ${check.maven.version} is required</message>
+                            <version>[${check.maven.version},)</version>
+                        </requireMavenVersion>
+                        <requireJavaVersion>
+                            <message>You are running an older version of Java ${java.version}. At least JDK ${check.java.version} is required</message>
+                            <version>[${check.java.version}.0,)</version>
+                        </requireJavaVersion>
+                    </rules>
                 </configuration>
             </plugin>
             <plugin>
