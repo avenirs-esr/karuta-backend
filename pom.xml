@@ -29,9 +29,9 @@
     </developers>
 
     <scm>
-        <connection>scm:git:ssh://git@github.com/karutaproject/karuta-backend_legacy.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/karutaproject/karuta-backend_legacy.git</developerConnection>
-        <url>https://github.com/karutaproject/karuta-backend_legacy.git</url>
+        <connection>scm:git:ssh://git@github.com/avenirs-esr/karuta-backend.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/avenirs-esr/karuta-backend.git</developerConnection>
+        <url>https://github.com/avenirs-esr/karuta-backend.git</url>
         <tag>HEAD</tag>
     </scm>
 
