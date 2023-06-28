@@ -11,7 +11,7 @@ To download executable files go to [ePortfolium website](https://www.eportfolium
 -------
 #### Installing Karuta Source Code
 Tomcat 9 is recommended.
-
+Java 11 is required
 MySQL 5.5 or MariaDB 10.x is recommended.
 
 #### Back-end
