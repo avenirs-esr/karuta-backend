@@ -160,7 +160,7 @@ public class RestServicePortfolio {
     private String backend;
     private boolean resetPWEnable;
     private String emailResetMessage;
-    private String ccEmail;
+    private String bccEmail;
     private String basicLogoutRedirectionURL;
     private boolean casCreateAccount;
     private String casUrlValidation;
@@ -193,7 +193,7 @@ public class RestServicePortfolio {
             activelogin = BooleanUtils.toBoolean(ConfigUtils.getInstance().getProperty("activate_login"));
             resetPWEnable = BooleanUtils.toBoolean(ConfigUtils.getInstance().getProperty("enable_password_reset"));
             emailResetMessage = ConfigUtils.getInstance().getProperty("email_password_reset");
-            ccEmail = ConfigUtils.getInstance().getProperty("sys_email");
+            bccEmail = ConfigUtils.getInstance().getProperty("sys_email");
             basicLogoutRedirectionURL = ConfigUtils.getInstance().getProperty("baseui_redirect_location");
             backend = ConfigUtils.getInstance().getRequiredProperty("backendserver");
             // CAS
@@ -4261,7 +4261,7 @@ public class RestServicePortfolio {
                 c = SqlUtils.getConnection();
                 // Check if we have that email somewhere
                 String email = dataProvider.emailFromLogin(c, username);
-                if (email != null && !"".equals(email)) {
+                if (email != null && !email.isEmpty()) {
                     // Generate password
                     long base = System.currentTimeMillis();
                     MessageDigest md = MessageDigest.getInstance("SHA-1");
@@ -4281,7 +4281,7 @@ public class RestServicePortfolio {
                             securityLog.info("[{}] [{}] asked to reset password", ip, username);
                         }
                         // Send email
-                        MailUtils.postMail(sc, email, ccEmail, "Password change for Karuta", content, logger);
+                        MailUtils.postMail(sc, email, null, bccEmail, "Password change for Karuta", content, logger);
                         retVal = 200;
                         retText = "sent";
                     }

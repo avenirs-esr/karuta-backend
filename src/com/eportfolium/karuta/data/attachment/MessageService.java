@@ -94,7 +94,7 @@ public class MessageService extends HttpServlet {
         switch (notification) {
             case "email":
                 try {
-                    MailUtils.postMail(config, recipient, recipient_cc, subject, message, logger);
+                    MailUtils.postMail(config, recipient, recipient_cc, recipient_bcc, subject, message, logger);
                 } catch (Exception e) {
                     logger.error(e.getMessage());
                     //TODO Something is missing
@@ -140,7 +140,7 @@ public class MessageService extends HttpServlet {
             connect.setRequestMethod("POST");
             connect.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
             connect.setRequestProperty("charset", "utf-8");
-            connect.setRequestProperty("Content-Length", "" + Integer.toString(urlParameters.getBytes().length));
+            connect.setRequestProperty("Content-Length", Integer.toString(urlParameters.getBytes().length));
             connect.setUseCaches(false);
             connect.setRequestProperty("Cookie", auth[1]);
             connect.connect();
@@ -178,7 +178,7 @@ public class MessageService extends HttpServlet {
             connect.setRequestMethod("POST");
             connect.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
             connect.setRequestProperty("charset", "utf-8");
-            connect.setRequestProperty("Content-Length", "" + Integer.toString(urlParameters.getBytes().length));
+            connect.setRequestProperty("Content-Length", Integer.toString(urlParameters.getBytes().length));
             connect.setUseCaches(false);
             connect.connect();
 

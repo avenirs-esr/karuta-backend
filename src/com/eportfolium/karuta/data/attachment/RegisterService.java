@@ -91,8 +91,8 @@ public class RegisterService extends HttpServlet {
         Connection connection = null;
         try {
             connection = SqlUtils.getConnection();
-        } catch (Exception e1) {
-            e1.printStackTrace();
+        } catch (Exception e) {
+            logger.error("Managed database error connection ", e);
         }
 
         response.setCharacterEncoding(StandardCharsets.UTF_8.toString());
@@ -105,7 +105,8 @@ public class RegisterService extends HttpServlet {
             String username = "";
             String password = "";
             String mail = "";
-            String mailcc = "";
+            String mailcc = null;
+            String mailbcc = null;
             boolean hasChanged = false;
 
             String converted = "";
@@ -152,7 +153,7 @@ public class RegisterService extends HttpServlet {
                 }
             }
 
-            if (!"".equals(username)) {
+            if (!username.isEmpty()) {
                 String val = dataProvider.postUsers(connection, converted, 1);
                 if (!"".equals(val)) {
                     logger.debug("Account create: " + val);
@@ -166,7 +167,7 @@ public class RegisterService extends HttpServlet {
                 response.setStatus(200);
                 // Send email
                 String content = "Your account with username: " + username + " has been created with the password: " + password;
-                MailUtils.postMail(getServletConfig(), mail, mailcc, "Account created for Karuta: " + username, content, logger);
+                MailUtils.postMail(getServletConfig(), mail, mailcc, mailbcc, "Account created for Karuta: " + username, content, logger);
                 PrintWriter output = response.getWriter();
                 output.write("created");
                 output.close();

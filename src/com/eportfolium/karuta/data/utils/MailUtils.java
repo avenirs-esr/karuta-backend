@@ -46,7 +46,7 @@ public class MailUtils {
     }
 
     //===============================================================
-    public static int postMail(ServletConfig config, String recipients_to, String recipients_cc, String subject, String content, Logger logger) throws Exception {
+    public static int postMail(ServletConfig config, String recipients_to, String recipients_cc, String recipients_bcc, String subject, String content, Logger logger) throws Exception {
         //===============================================================
         if (recipients_to == null || subject == null || content == null)
             return -1;
@@ -56,8 +56,11 @@ public class MailUtils {
 
         String[] recip = recipients_to.split(",");
         String[] recip_cc = null;
-        if (recipients_cc != null && !"".equals(recipients_cc))
+        String[] recip_bcc = null;
+        if (recipients_cc != null && !recipients_cc.isEmpty())
             recip_cc = recipients_cc.split(",");
+        if (recipients_bcc != null && !recipients_bcc.isEmpty())
+            recip_bcc = recipients_bcc.split(",");
 
         try {
             final String mail_login = ConfigUtils.getInstance().getRequiredProperty("mail_login");
@@ -107,9 +110,17 @@ public class MailUtils {
                 InternetAddress[] addressCC = new InternetAddress[recip_cc.length];
                 for (int i = 0; i < recip_cc.length; i++) {
                     addressCC[i] = new InternetAddress(recip_cc[i]);
-                    logger.debug("<br>addressTo: {}", addressCC[i]);
+                    logger.debug("<br>CC addressTo: {}", addressCC[i]);
                 }
                 msg.setRecipients(Message.RecipientType.CC, addressCC);
+            }
+            if (recip_bcc != null) {
+                InternetAddress[] addressBCC = new InternetAddress[recip_bcc.length];
+                for (int i = 0; i < recip_bcc.length; i++) {
+                    addressBCC[i] = new InternetAddress(recip_bcc[i]);
+                    logger.debug("<br>BCC addressTo: {}", addressBCC[i]);
+                }
+                msg.setRecipients(Message.RecipientType.BCC, addressBCC);
             }
             msg.setRecipients(Message.RecipientType.TO, addressTo);
             MimeMultipart multipart = new MimeMultipart("related");

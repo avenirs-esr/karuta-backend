@@ -176,9 +176,9 @@ public class MailService extends HttpServlet {
             switch (notification) {
                 case "email":
                     if (keepcc)
-                        retval = MailUtils.postMail(config, recipient, sender, subject, message, logger);
+                        retval = MailUtils.postMail(config, recipient, sender, null, subject, message, logger);
                     else
-                        retval = MailUtils.postMail(config, recipient, "", subject, message, logger);
+                        retval = MailUtils.postMail(config, recipient, null,null, subject, message, logger);
                     logger.trace("Mail to '{}' from '{}' by uid '{}'", recipient, sender, uid);
                     break;
                 case "sakai":
