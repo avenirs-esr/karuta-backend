@@ -204,8 +204,8 @@ public class ReportHelperProvider {
         logger.debug("SQL: {}", sqlCheck);
         PreparedStatement stCheck = c.prepareStatement(sqlCheck);
         for (int i=0; i<vals.size(); i++) {
-            stCheck.setString(i+1, vals.get(i));
             logger.debug("PARAMS {} VAL: {}", i+1, vals.get(i));
+            stCheck.setString(i+1, vals.get(i));
         }
         if (addRight != null) {
             stCheck.setInt(vals.size() + 1, userid);
