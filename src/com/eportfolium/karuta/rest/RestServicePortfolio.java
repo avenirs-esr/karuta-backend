@@ -160,6 +160,7 @@ public class RestServicePortfolio {
     private String backend;
     private boolean resetPWEnable;
     private String emailResetMessage;
+    private String emailResetTitle;
     private String bccEmail;
     private String basicLogoutRedirectionURL;
     private boolean casCreateAccount;
@@ -193,6 +194,7 @@ public class RestServicePortfolio {
             activelogin = BooleanUtils.toBoolean(ConfigUtils.getInstance().getProperty("activate_login"));
             resetPWEnable = BooleanUtils.toBoolean(ConfigUtils.getInstance().getProperty("enable_password_reset"));
             emailResetMessage = ConfigUtils.getInstance().getProperty("email_password_reset");
+            emailResetTitle = ConfigUtils.getInstance().getProperty("email_password_reset_title");
             bccEmail = ConfigUtils.getInstance().getProperty("sys_email");
             basicLogoutRedirectionURL = ConfigUtils.getInstance().getProperty("baseui_redirect_location");
             backend = ConfigUtils.getInstance().getRequiredProperty("backendserver");
@@ -4271,7 +4273,7 @@ public class RestServicePortfolio {
 
                     // Write change
                     boolean result = dataProvider.changePassword(c, username, password);
-                    String content = emailResetMessage + password + "<br>\n";
+                    String content = String.format(emailResetMessage, password) + "<br>\n";
                     String referal = httpServletRequest.getHeader("referer");
 //				content += String.format("administrator - %s", referal);
 
@@ -4281,7 +4283,7 @@ public class RestServicePortfolio {
                             securityLog.info("[{}] [{}] asked to reset password", ip, username);
                         }
                         // Send email
-                        MailUtils.postMail(sc, email, null, bccEmail, "Password change for Karuta", content, logger);
+                        MailUtils.postMail(sc, email, null, bccEmail, emailResetTitle, content, logger);
                         retVal = 200;
                         retText = "sent";
                     }
