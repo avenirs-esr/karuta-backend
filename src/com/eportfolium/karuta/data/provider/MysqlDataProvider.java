@@ -14278,6 +14278,10 @@ public class MysqlDataProvider implements DataProvider {
     {
         PreparedStatement st = null;
         ResultSet rs = null;
+        PreparedStatement all_fileid_st = null;
+        ResultSet all_fileid_rs = null;
+        PreparedStatement count_fileid_st = null;
+        ResultSet count_fileid_rs = null;
         String sql;
         ArrayList<Pair<String, String>> retval = new ArrayList<Pair<String,String>>();
 
@@ -14309,37 +14313,47 @@ public class MysqlDataProvider implements DataProvider {
             st.executeUpdate();
             st.close();
 
-            /// Check referenced file count
-            sql = "SELECT COUNT(*) AS fcount, t.resuuid, t.fileid " +
-                    "FROM resource_table rt, t_fileid t " +
-                    "WHERE rt.content LIKE t.fileid " +
-                    "GROUP BY t.fileid ORDER BY fcount;";
-            st = c.prepareStatement(sql);
-            rs = st.executeQuery();
+            /// Iterate over lines
+            sql = "SELECT * from t_fileid;";
+            all_fileid_st = c.prepareStatement(sql);
+            all_fileid_rs = all_fileid_st.executeQuery();
 
-            while( rs.next() )
+            /// For each added file
+            while( all_fileid_rs.next() )
             {
-                int count = rs.getInt(1);
-                /// Only keep value where count is 1
-                if(count > 1) break;	// Values are ordered
+                /// Optimization with MATCH AGAINST
+                sql = "SELECT COUNT(*) from resource_table rt where MATCH(rt.content) AGAINST(? IN BOOLEAN MODE);";
+                count_fileid_st = c.prepareStatement(sql);
+                /// Construct expression to match
+                String parsed_fileid = "+fileid "+"+"+all_fileid_rs.getString(2).substring(
+                        all_fileid_rs.getString(2).lastIndexOf(">") + 1).replace("%","");
+                count_fileid_st.setString(1, parsed_fileid);
+                /// Execute query to get count
+                count_fileid_rs = count_fileid_st.executeQuery();
 
-                String nodeuuid = rs.getString(2);
-                String rawfileid = rs.getString(3);
+                if(count_fileid_rs.next()){
+                    int count = count_fileid_rs.getInt(1);
+                    /// Only keep value where count is 1
+                    if(count == 1){
+                        String nodeuuid = all_fileid_rs.getString(1);
+                        String rawfileid = all_fileid_rs.getString(2);
 
-                // Fetch lang and fileid
-                Matcher info = FILEID_PAT.matcher(rawfileid);
-                String lang = "";
-                if(info.find())
-                {
-                    lang = info.group(1);
+                        // Fetch lang and fileid
+                        Matcher info = FILEID_PAT.matcher(rawfileid);
+                        String lang = "";
+                        if(info.find())
+                        {
+                            lang = info.group(1);
 
-                    // nodeid and lang
-                    Pair<String,String> data = Pair.of(nodeuuid, lang);
-                    retval.add(data);
+                            // nodeid and lang
+                            Pair<String,String> data = Pair.of(nodeuuid, lang);
+                            retval.add(data);
+                        }
+                    }
                 }
-
+                count_fileid_st.close();
             }
-            st.close();
+            all_fileid_st.close();
         }
         catch( Exception e )
         {
