@@ -1431,7 +1431,7 @@ public class Credential {
       ResultSet rs = null;
       PreparedStatement stmt = null;
       try {
-          String query = "SELECT gri.grid " +
+          String query = "SELECT gi.gid " +
                   "FROM group_info gi, group_right_info gri, node n " +
                   "WHERE n.node_uuid=uuid2bin(?) AND n.portfolio_id=gri.portfolio_id AND gri.grid=gi.grid " +
                   "AND gi.label=?;";
