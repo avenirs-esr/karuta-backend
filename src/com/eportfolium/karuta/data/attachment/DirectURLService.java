@@ -76,6 +76,9 @@ public class DirectURLService extends HttpServlet {
     // Default duration in hours
     private int defaultDuration;
 
+    // duration to add to help to fix problems on bad values
+    private int increaseDuration;
+
     @Override
     public void init(final ServletConfig config) throws ServletException {
         super.init(config);
@@ -96,6 +99,7 @@ public class DirectURLService extends HttpServlet {
             }
             secretkey = ConfigUtils.getInstance().getRequiredProperty("directkey");
             defaultDuration = Integer.parseInt(ConfigUtils.getInstance().getProperty("defaultLinkDuration", "72"));
+            increaseDuration = Integer.parseInt(ConfigUtils.getInstance().getProperty("increaseTemporarilyDuration", "0"));
         } catch (Exception e) {
             logger.error("Can't init servlet", e);
             throw new ServletException(e);
@@ -135,28 +139,30 @@ public class DirectURLService extends HttpServlet {
 
         /// Keeping access log
         Date date = new Date();
-        String datestring = DATE_FORMAT.format(date);
+        final String datestring = DATE_FORMAT.format(date);
 
         /// Check case we are in, act accordingly
 
-        String[] splitData = output.split(" ");
+        final String[] splitData = output.split(" ");
         String uuid = splitData[0];
         String email = splitData[1];
-        String role = splitData[2];
-        String showtorole = splitData[6];
-        int level = Integer.parseInt(splitData[3]);
+        final String role = splitData[2];
+        final int level = Integer.parseInt(splitData[3]);
+        final String durationString = splitData[4];
+        final String endTimeString = splitData[5];
+        final String showtorole = splitData[6];
 
-        if ("unlimited".equals(splitData[4])) {
+        if ("unlimited".equals(durationString)) {
             // Log access
-            accessLog.info("[{}] Direct link access by: {} ({}) for uuid: {} level: {} duration: {}", datestring, email, role, uuid, level, splitData[4]);
+            accessLog.info("[{}] Direct link access by: {} ({}) for uuid: {} level: {} duration: {}", datestring, email, role, uuid, level, durationString);
         } else {
-            int duration = Integer.parseInt(splitData[4]);    // In hours (minimum 1h)
+            int duration = Integer.parseInt(durationString);    // In hours (minimum 1h)
             long endtime = 0;
-            endtime = Long.parseLong(splitData[5]);
+            endtime = Long.parseLong(endTimeString) + increaseDuration;
 
             /// Check if link is still valid
             long currtime = date.getTime() / 1000;
-            if (currtime > endtime) {
+            if (currtime > endtime ) {
                 accessLog.info("[{}] Old link access by: {} ({}) for uuid: {} level: {} duration: {} ends at: {}", datestring, email, role, uuid, level, duration, endtime);
                 response.setStatus(403);
                 response.getWriter().close();
@@ -342,7 +348,7 @@ public class DirectURLService extends HttpServlet {
             }
             nodedata = retdata.toString();
 
-			logger.debug("DIRECT FETCH NODE: {}", nodedata);
+            logger.debug("DIRECT FETCH NODE: {}", nodedata);
             DocumentBuilderFactory documentBuilderFactory = DomUtils.newSecureDocumentBuilderFactory();
             DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
             doc = documentBuilder.parse(new ByteArrayInputStream(nodedata.getBytes(StandardCharsets.UTF_8)));
@@ -397,7 +403,7 @@ public class DirectURLService extends HttpServlet {
             }
 
             values = multiplex[f].split(",");
-			logger.debug("VALUES: {}", shareroleval);
+            logger.debug("VALUES: {}", shareroleval);
         }
 
         // Parameters checking
@@ -484,7 +490,7 @@ public class DirectURLService extends HttpServlet {
         writer.write(output);
         writer.close();
         request.getInputStream().close();
-    	logger.debug("DIRECT FETCH NODE: {}", output);
+        logger.debug("DIRECT FETCH NODE: {}", output);
 
     }
 
