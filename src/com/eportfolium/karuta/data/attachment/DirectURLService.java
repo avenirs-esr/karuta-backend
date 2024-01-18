@@ -73,6 +73,9 @@ public class DirectURLService extends HttpServlet {
 
     private String secretkey;
 
+    // Default duration in hours
+    private int defaultDuration;
+
     @Override
     public void init(final ServletConfig config) throws ServletException {
         super.init(config);
@@ -92,6 +95,7 @@ public class DirectURLService extends HttpServlet {
                 }
             }
             secretkey = ConfigUtils.getInstance().getRequiredProperty("directkey");
+            defaultDuration = Integer.parseInt(ConfigUtils.getInstance().getProperty("defaultLinkDuration", "72"));
         } catch (Exception e) {
             logger.error("Can't init servlet", e);
             throw new ServletException(e);
@@ -440,30 +444,31 @@ public class DirectURLService extends HttpServlet {
             return;
         }
 
-        if (duration == null)
-            duration = "72";    // Default 72h
         String endtimeString = "";
+        int durationInt = 0;
         if ("unlimited".equals(duration)) {
             endtimeString = duration;
         } else {
-            int durationInt = Integer.parseInt(duration);
+            try {
+                durationInt = Integer.parseInt(duration);
+            } catch (NumberFormatException nfe) {
+                durationInt = defaultDuration;
+            }
             if (durationInt < 1)
                 durationInt = 1;
-            else if (durationInt > 24 * 30)    // 720 hours, 30 days
-                durationInt = 24 * 30;
-            Date current = new Date();
-            long endtime = current.getTime() / 1000 + durationInt * 3600;    // Number of seconds
+            final Date current = new Date();
+            long endtime = current.getTime() / 1000 + durationInt * 3600L;    // Number of seconds
             endtimeString = Long.toString(endtime);
         }
 
         /// Keeping creation log
         String datestring = DATE_FORMAT.format(new Date());
-        accessLog.info("[{}] Direct link creation for user: {} for access at: {} with email: {} ({}). Access level: '{}' for duration: '{}' ending at: '{}'", datestring, uid, uuid, email, role, level, duration, endtimeString);
+        accessLog.info("[{}] Direct link creation for user: {} for access at: {} with email: {} ({}). Access level: '{}' for duration: '{}' ending at: '{}'", datestring, uid, uuid, email, role, level, durationInt, endtimeString);
 
         /// Encrypt nodeuuid email role
         String output = "";
         try {
-            String data = uuid + " " + email + " " + role + " " + level + " " + duration + " " + endtimeString + " " + showtorole;
+            String data = uuid + " " + email + " " + role + " " + level + " " + durationInt + " " + endtimeString + " " + showtorole;
             Cipher rc4 = Cipher.getInstance("RC4");
             SecretKeySpec key = new SecretKeySpec(secretkey.getBytes(), "RC4");
             rc4.init(Cipher.ENCRYPT_MODE, key);
