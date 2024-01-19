@@ -158,19 +158,21 @@ public class DirectURLService extends HttpServlet {
         } else {
             int duration = Integer.parseInt(durationString);    // In hours (minimum 1h)
             long endtime = 0;
-            endtime = Long.parseLong(endTimeString) + increaseDuration;
+            endtime = Long.parseLong(endTimeString) + increaseDuration * 3600L;
 
             /// Check if link is still valid
             long currtime = date.getTime() / 1000;
             if (currtime > endtime ) {
-                accessLog.info("[{}] Old link access by: {} ({}) for uuid: {} level: {} duration: {} ends at: {}", datestring, email, role, uuid, level, duration, endtime);
+                accessLog.info("[{}] Old link access by: {} ({}) for uuid: {} level: {} duration: {} ends at: {} => {}",
+                        datestring, email, role, uuid, level, duration, endtime, DATE_FORMAT.format(new java.util.Date (endtime * 1000)));
                 response.setStatus(403);
                 response.getWriter().close();
                 request.getInputStream().close();
                 return;
             } else {
                 // Log connection attempt. email, uuid, role access, hour, ip, date
-                accessLog.info("[{}] Direct link access by: {} ({}) for uuid: {} level: {} duration: {} ends at: {}", datestring, email, role, uuid, level, duration, endtime);
+                accessLog.info("[{}] Direct link access by: {} ({}) for uuid: {} level: {} duration: {} ends at: {} => {}",
+                        datestring, email, role, uuid, level, duration, endtime, DATE_FORMAT.format(new java.util.Date (endtime * 1000)));
             }
         }
 
@@ -469,7 +471,8 @@ public class DirectURLService extends HttpServlet {
 
         /// Keeping creation log
         String datestring = DATE_FORMAT.format(new Date());
-        accessLog.info("[{}] Direct link creation for user: {} for access at: {} with email: {} ({}). Access level: '{}' for duration: '{}' ending at: '{}'", datestring, uid, uuid, email, role, level, durationInt, endtimeString);
+        accessLog.info("[{}] Direct link creation for user: {} for access at: {} with email: {} ({}). Access level: '{}' for duration: '{}' ending at: '{}' => {}",
+                datestring, uid, uuid, email, role, level, durationInt, endtimeString, DATE_FORMAT.format(new java.util.Date (Long.parseLong(endtimeString) * 1000)));
 
         /// Encrypt nodeuuid email role
         String output = "";
