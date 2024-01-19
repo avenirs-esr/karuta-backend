@@ -66,8 +66,6 @@ public class DirectURLService extends HttpServlet {
     private static final long serialVersionUID = 9188067506635747901L;
 
     DataProvider dataProvider;
-    boolean hasNodeReadRight = false;
-    boolean hasNodeWriteRight = false;
     HttpSession session;
     ArrayList<String> ourIPs = new ArrayList<>();
 
