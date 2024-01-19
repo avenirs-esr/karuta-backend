@@ -36,14 +36,14 @@
     </scm>
 
     <distributionManagement>
-      <snapshotRepository>
-        <id>ossrh</id>
-        <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-      </snapshotRepository>
-      <repository>
-        <id>ossrh</id>
-        <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-      </repository>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
     </distributionManagement>
 
     <properties>
@@ -67,7 +67,16 @@
             <artifactId>javassist</artifactId>
             <version>3.29.0-GA</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.7</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.3.12</version>
+        </dependency>
         <dependency>
             <groupId>asm</groupId>
             <artifactId>asm</artifactId>
@@ -88,10 +97,10 @@
             <artifactId>basiclti-util</artifactId>
             <version>22.2</version>
             <exclusions>
-              <exclusion>
-                <groupId>net.oauth.core</groupId>
-                <artifactId>oauth</artifactId>
-              </exclusion>
+                <exclusion>
+                    <groupId>net.oauth.core</groupId>
+                    <artifactId>oauth</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -99,10 +108,10 @@
             <artifactId>cas-client-core</artifactId>
             <version>${CAS_VER}</version>
             <exclusions>
-              <exclusion>
-                <groupId>javax.xml.bind</groupId>
-                <artifactId>jaxb-api</artifactId>
-              </exclusion>
+                <exclusion>
+                    <groupId>javax.xml.bind</groupId>
+                    <artifactId>jaxb-api</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 
@@ -111,10 +120,10 @@
             <artifactId>cas-client-support-distributed-ehcache</artifactId>
             <version>${CAS_VER}</version>
             <exclusions>
-              <exclusion>
-                <groupId>javax.xml.bind</groupId>
-                <artifactId>jaxb-api</artifactId>
-              </exclusion>
+                <exclusion>
+                    <groupId>javax.xml.bind</groupId>
+                    <artifactId>jaxb-api</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -122,10 +131,10 @@
             <artifactId>cas-client-support-distributed-memcached</artifactId>
             <version>${CAS_VER}</version>
             <exclusions>
-              <exclusion>
-                <groupId>javax.xml.bind</groupId>
-                <artifactId>jaxb-api</artifactId>
-              </exclusion>
+                <exclusion>
+                    <groupId>javax.xml.bind</groupId>
+                    <artifactId>jaxb-api</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -171,12 +180,12 @@
                     <groupId>xalan</groupId>
                 </exclusion>
                 <exclusion>
-                  <groupId>xml-apis</groupId>
-                  <artifactId>xml-apis</artifactId>
+                    <groupId>xml-apis</groupId>
+                    <artifactId>xml-apis</artifactId>
                 </exclusion>
                 <exclusion>
-                  <groupId>xml-apis</groupId>
-                  <artifactId>xml-apis-ext</artifactId>
+                    <groupId>xml-apis</groupId>
+                    <artifactId>xml-apis-ext</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -228,26 +237,21 @@
             <artifactId>json-simple</artifactId>
             <version>1.1.1</version>
             <exclusions>
-              <exclusion>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-              </exclusion>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
-          <groupId>net.oauth.core</groupId>
-          <artifactId>oauth</artifactId>
-          <version>20100527</version>
+            <groupId>net.oauth.core</groupId>
+            <artifactId>oauth</artifactId>
+            <version>20100527</version>
         </dependency>
         <dependency>
             <groupId>net.sf.jtidy</groupId>
             <artifactId>jtidy</artifactId>
             <version>r938</version>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.2.11</version>
         </dependency>
         <dependency>
             <groupId>com.mysql</groupId>
@@ -301,9 +305,9 @@
         </dependency>
 
         <dependency>
-          <groupId>xml-apis</groupId>
-          <artifactId>xml-apis</artifactId>
-          <version>1.4.01</version>
+            <groupId>xml-apis</groupId>
+            <artifactId>xml-apis</artifactId>
+            <version>1.4.01</version>
         </dependency>
 
         <dependency>
@@ -321,10 +325,10 @@
             <artifactId>org.apache.servicemix.bundles.xalan</artifactId>
             <version>2.7.2_3</version><!--$NO-MVN-MAN-VER$-->
             <exclusions>
-              <exclusion>
-                <groupId>xml-apis</groupId>
-                <artifactId>xml-apis</artifactId>
-              </exclusion>
+                <exclusion>
+                    <groupId>xml-apis</groupId>
+                    <artifactId>xml-apis</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
     </dependencies>
@@ -394,9 +398,9 @@
                     <target>11</target>
                     <encoding>UTF-8</encoding>
                     <compilerArgs>
-                      <arg>-Xlint:all</arg>
-                      <arg>-Xmaxwarns</arg>
-                      <arg>50000</arg>
+                        <arg>-Xlint:all</arg>
+                        <arg>-Xmaxwarns</arg>
+                        <arg>50000</arg>
                     </compilerArgs>
                 </configuration>
             </plugin>
@@ -432,7 +436,7 @@
                         <manifest>
                             <addDefaultEntries>true</addDefaultEntries>
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-<!--                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>-->
+                            <!--                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>-->
                         </manifest>
                         <manifestEntries>
                             <Build-Time>${maven.build.timestamp}</Build-Time>
@@ -520,17 +524,17 @@
                     </execution>
                 </executions>
             </plugin>
-          <plugin>
-            <groupId>org.sonatype.plugins</groupId>
-            <artifactId>nexus-staging-maven-plugin</artifactId>
-            <version>1.6.13</version>
-            <extensions>true</extensions>
-            <configuration>
-              <serverId>ossrh</serverId>
-              <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
-              <autoReleaseAfterClose>true</autoReleaseAfterClose>
-            </configuration>
-          </plugin>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.13</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
