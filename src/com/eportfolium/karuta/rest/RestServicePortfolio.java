@@ -177,6 +177,7 @@ public class RestServicePortfolio {
 
     private String label;
     private String archivePath;
+    private SimpleDateFormat DTExportTracesZip;
 
     private KEventbus eventbus = new KEventbus();
 
@@ -222,6 +223,10 @@ public class RestServicePortfolio {
             dataProvider = SqlUtils.initProvider();
 
             archivePath = ConfigUtils.getInstance().getKarutaHome() + ConfigUtils.getInstance().getServletName() + "_archive" + File.separatorChar;
+
+            // Pattern nom du ZIP d'export des traces
+            DTExportTracesZip = new SimpleDateFormat(ConfigUtils.getInstance().getProperty("exportTraceZipPrefix", "'Export_Traces_'yyyy-MM-dd_HH-mm-ss"));
+
         } catch (Exception e) {
             logger.error("CAN'T INIT REST SERVICE from " + ConfigUtils.getInstance().getConfigPath(), e);
         }
@@ -771,7 +776,7 @@ public class RestServicePortfolio {
                     // Soit on renvoie juste les traces
                     if(traces != null){
                         tempZip = getZipFileOnlyWithTraces(portfolioUuid, lang, doc, session);
-                        download_filename = "export_trace_"+ui.User+"_"+timeFormat;
+                        download_filename = DTExportTracesZip.format(new Date());
                     // Soit on renvoie le portfolio entier
                     } else {
                         tempZip = getZipFile(portfolioUuid, portfolio, lang, doc, session);
