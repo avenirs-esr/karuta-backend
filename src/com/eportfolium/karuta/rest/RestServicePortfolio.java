@@ -724,7 +724,8 @@ public class RestServicePortfolio {
     public Object getPortfolio(@CookieParam("user") String user, @CookieParam("credential") String token, @QueryParam("group") int groupId, @PathParam("portfolio-id") String portfolioUuid,
                                @Context ServletConfig sc, @Context HttpServletRequest httpServletRequest, @HeaderParam("Accept") String accept,
                                @QueryParam("user") Integer userId, @QueryParam("userrole") String userrole, @QueryParam("resources") String resource,
-                               @QueryParam("files") String files, @QueryParam("export") String export, @QueryParam("lang") String lang, @QueryParam("level") Integer cutoff) {
+                               @QueryParam("files") String files, @QueryParam("export") String export, @QueryParam("lang") String lang, @QueryParam("level") Integer cutoff,
+                               @QueryParam("traces") String traces) {
         if (!isUUID(portfolioUuid)) {
             logger.error("isUUID({}) is false", portfolioUuid);
             throw new RestWebApplicationException(Status.BAD_REQUEST, "Not UUID");
@@ -763,7 +764,18 @@ public class RestServicePortfolio {
                 } else if (resource != null && files != null) {
                     //// Cas du renvoi d'un ZIP
                     HttpSession session = httpServletRequest.getSession(true);
-                    File tempZip = getZipFile(portfolioUuid, portfolio, lang, doc, session);
+
+                    // Modification 24/06/2024 : Possibilité d'envoyer un ZIP avec l'ensemble des traces OU un ZIP avec le portfolio
+                    File tempZip;
+                    String download_filename = code + "-" + timeFormat;
+                    // Soit on renvoie juste les traces
+                    if(traces != null){
+                        tempZip = getZipFileOnlyWithTraces(portfolioUuid, lang, doc, session);
+                        download_filename = "export_trace_"+ui.User+"_"+timeFormat;
+                    // Soit on renvoie le portfolio entier
+                    } else {
+                        tempZip = getZipFile(portfolioUuid, portfolio, lang, doc, session);
+                    }
 
                     /// Return zip file
                     RandomAccessFile f = new RandomAccessFile(tempZip.getAbsoluteFile(), "r");
@@ -773,7 +785,7 @@ public class RestServicePortfolio {
 
                     response = Response
                             .ok(b, MediaType.APPLICATION_OCTET_STREAM)
-                            .header("content-disposition", "attachment; filename = \"" + code + "-" + timeFormat + ".zip")
+                            .header("content-disposition", "attachment; filename = \"" + download_filename + ".zip")
                             .build();
 
                     // Temp file cleanup
@@ -912,6 +924,128 @@ public class RestServicePortfolio {
             EntityUtils.consume(entity);
             ret.close();
             client.close();
+        }
+
+        zos.close();
+        fos.close();
+
+        return tempZip;
+    }
+
+    /**
+     * Retourne un fichier ZIP contenant l'ensemble des traces d'un portfolio
+     * Basée sur le même principe que getZipFile
+     * @param portfolioUuid L'UUID du portfolio concerné
+     * @param lang
+     * @param doc
+     * @param session
+     * @return Le fichier ZIP contenant l'ensemble des traces du portfolio
+     * @throws IOException
+     * @throws XPathExpressionException
+     */
+    private File getZipFileOnlyWithTraces(String portfolioUuid, String lang, Document doc, HttpSession session) throws IOException, XPathExpressionException {
+        if (!isUUID(portfolioUuid)) {
+            logger.error("isUUID({}) is false", portfolioUuid);
+            throw new RestWebApplicationException(Status.BAD_REQUEST, "Not UUID");
+        }
+
+        /// Temp file in temp directory
+        File tempDir = new File(tempdir);
+        if (!tempDir.isDirectory())
+            tempDir.mkdirs();
+        File tempZip = File.createTempFile(portfolioUuid, ".zip", tempDir);
+
+        FileOutputStream fos = new FileOutputStream(tempZip);
+        ZipOutputStream zos = new ZipOutputStream(fos);
+
+        /// Find all fileid/filename
+        XPath xPath = XPathFactory.newInstance().newXPath();
+        String filterRes = "//*[local-name()='asmResource']/*[local-name()='fileid' and text()]";
+        NodeList nodelist = (NodeList) xPath.compile(filterRes).evaluate(doc, XPathConstants.NODESET);
+
+        // Ensemble qui contient les noms de fichier déjà ajoutés au ZIP pour éviter les doublons
+        Set<String> filenames = new HashSet<>();
+
+        /// Fetch all files
+        for (int i = 0; i < nodelist.getLength(); ++i) {
+            Node res = nodelist.item(i);
+            /// Check if fileid has a lang
+            Node langAtt = res.getAttributes().getNamedItem("lang");
+            String filterName;
+            if (langAtt != null) {
+                lang = langAtt.getNodeValue();
+                filterName = ".//*[local-name()='filename' and @lang='" + lang + "' and text()]";
+            } else {
+                filterName = ".//*[local-name()='filename' and @lang and text()]";
+            }
+
+            Node p = res.getParentNode();    // fileid -> resource
+            Node gp = p.getParentNode();    // resource -> context
+            Node uuidNode = gp.getAttributes().getNamedItem("id");
+            String uuid = uuidNode.getTextContent();
+
+            // On récupère le semantictag associé au fileid, pour cela il faut qu'on remonte de 2 noeuds, puis
+            // aller chercher le noeud metadata et son attribut semantictag
+            String semantictag = "";
+            NodeList nodeList = gp.getChildNodes();
+            for(int k=0; k<nodeList.getLength(); k++){
+                Node node = nodeList.item(k);
+                if(node.getNodeName().equals("metadata")){
+                    semantictag = node.getAttributes().getNamedItem("semantictag").getTextContent();
+                    System.out.println("semantictag : "+node.getAttributes().getNamedItem("semantictag").getTextContent());
+                }
+            }
+
+            // On n'ajoute le fichier au ZIP que dans le cas ou c'est une trace (un document-etudiant)
+            if(semantictag.equals("document-etudiant")){
+                NodeList textList = (NodeList) xPath.compile(filterName).evaluate(p, XPathConstants.NODESET);
+                String filename = "";
+                if (textList.getLength() != 0) {
+                    Element fileNode = (Element) textList.item(0);
+                    filename = fileNode.getTextContent();
+                    lang = fileNode.getAttribute("lang");    // In case it's a general fileid, fetch first filename (which can break things if nodes are not clean)
+                    if ("".equals(lang)) lang = "fr";
+                }
+
+                String url = backend + "/resources/resource/file/" + uuid + "?lang=" + lang;
+                HttpGet get = new HttpGet(url);
+
+                // Transfer sessionid so that local request still get security checked
+                get.addHeader("Cookie", "JSESSIONID=" + session.getId());
+
+                // Send request
+                CloseableHttpClient client = HttpClients.createDefault();
+                CloseableHttpResponse ret = client.execute(get);
+                HttpEntity entity = ret.getEntity();
+
+                // Dans le cas où on a un doublon de nom de fichier on concatène l'UUID au début
+                if(filenames.contains(filename)){
+                    filename = uuid + filename;
+                }
+                filenames.add(filename);
+
+                // Save it to zip file
+                InputStream content = entity.getContent();
+                ZipEntry ze = new ZipEntry(filename);
+                try {
+                    int totalread = 0;
+                    zos.putNextEntry(ze);
+                    int inByte;
+                    byte[] buf = new byte[4096];
+                    while ((inByte = content.read(buf)) != -1) {
+                        totalread += inByte;
+                        zos.write(buf, 0, inByte);
+                    }
+                    logger.info("FILE: {} -> {}", filename, totalread);
+                    content.close();
+                    zos.closeEntry();
+                } catch (Exception e) {
+                    logger.error("Managed error", e);
+                }
+                EntityUtils.consume(entity);
+                ret.close();
+                client.close();
+            }
         }
 
         zos.close();
