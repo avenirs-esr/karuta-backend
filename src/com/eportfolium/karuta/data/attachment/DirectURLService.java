@@ -454,6 +454,10 @@ public class DirectURLService extends HttpServlet {
         int durationInt = 0;
         if ("unlimited".equals(duration)) {
             endtimeString = duration;
+            /// Keeping creation log
+            String datestring = DATE_FORMAT.format(new Date());
+            accessLog.info("[{}] Direct link creation for user: {} for access at: {} with email: {} ({}). Access level: '{}' for duration: '{}' ending at: '{}' => {}",
+                    datestring, uid, uuid, email, role, level, durationInt, endtimeString, duration);
         } else {
             try {
                 durationInt = Integer.parseInt(duration);
@@ -465,12 +469,12 @@ public class DirectURLService extends HttpServlet {
             final Date current = new Date();
             long endtime = current.getTime() / 1000 + durationInt * 3600L;    // Number of seconds
             endtimeString = Long.toString(endtime);
-        }
 
-        /// Keeping creation log
-        String datestring = DATE_FORMAT.format(new Date());
-        accessLog.info("[{}] Direct link creation for user: {} for access at: {} with email: {} ({}). Access level: '{}' for duration: '{}' ending at: '{}' => {}",
-                datestring, uid, uuid, email, role, level, durationInt, endtimeString, DATE_FORMAT.format(new java.util.Date (Long.parseLong(endtimeString) * 1000)));
+            /// Keeping creation log
+            String datestring = DATE_FORMAT.format(new Date());
+            accessLog.info("[{}] Direct link creation for user: {} for access at: {} with email: {} ({}). Access level: '{}' for duration: '{}' ending at: '{}' => {}",
+                    datestring, uid, uuid, email, role, level, durationInt, endtimeString, DATE_FORMAT.format(new java.util.Date (Long.parseLong(endtimeString) * 1000)));
+        }
 
         /// Encrypt nodeuuid email role
         String output = "";
