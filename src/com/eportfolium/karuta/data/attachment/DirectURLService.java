@@ -15,6 +15,28 @@
 
 package com.eportfolium.karuta.data.attachment;
 
+import com.eportfolium.karuta.data.provider.DataProvider;
+import com.eportfolium.karuta.data.utils.ConfigUtils;
+import com.eportfolium.karuta.data.utils.DomUtils;
+import com.eportfolium.karuta.data.utils.SqlUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import javax.activation.MimeType;
+import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -33,29 +55,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.UUID;
-
-import javax.activation.MimeType;
-import javax.crypto.Cipher;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.SecretKeySpec;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import com.eportfolium.karuta.data.provider.DataProvider;
-import com.eportfolium.karuta.data.utils.ConfigUtils;
-import com.eportfolium.karuta.data.utils.DomUtils;
-import com.eportfolium.karuta.data.utils.SqlUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 public class DirectURLService extends HttpServlet {
 
@@ -146,15 +145,14 @@ public class DirectURLService extends HttpServlet {
         String email = splitData[1];
         final String role = splitData[2];
         final int level = Integer.parseInt(splitData[3]);
-        final String durationString = splitData[4];
+        final int duration = Integer.parseInt(splitData[4]);
         final String endTimeString = splitData[5];
         final String showtorole = splitData[6];
 
-        if ("unlimited".equals(durationString)) {
+        if (duration < 1) {
             // Log access
-            accessLog.info("[{}] Direct link access by: {} ({}) for uuid: {} level: {} duration: {}", datestring, email, role, uuid, level, durationString);
+            accessLog.info("[{}] Direct link access by: {} ({}) for uuid: {} level: {} duration: {}", datestring, email, role, uuid, level, duration);
         } else {
-            int duration = Integer.parseInt(durationString);    // In hours (minimum 1h)
             long endtime = 0;
             endtime = Long.parseLong(endTimeString) + increaseDuration * 3600L;
 
