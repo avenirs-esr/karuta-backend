@@ -15,8 +15,6 @@
 
 package com.eportfolium.karuta.data.utils;
 
-import java.util.Properties;
-
 import javax.mail.Message;
 import javax.mail.Session;
 import javax.mail.Transport;
@@ -25,6 +23,7 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.servlet.ServletConfig;
+import java.util.Properties;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
@@ -51,7 +50,7 @@ public class MailUtils {
         if (recipients_to == null || subject == null || content == null)
             return -1;
 
-        boolean debug = false;
+
         logger.debug("<br>postMail --in");
 
         String[] recip = recipients_to.split(",");
@@ -66,6 +65,7 @@ public class MailUtils {
             final String mail_login = ConfigUtils.getInstance().getRequiredProperty("mail_login");
             String mail_sender = ConfigUtils.getInstance().getProperty("mail_sender");
             final String mail_password = ConfigUtils.getInstance().getProperty("mail_password");
+            final boolean mailDebug =  BooleanUtils.toBoolean(ConfigUtils.getInstance().getProperty("mail_debug", "false"));
 
             if (mail_sender == null)
                 mail_sender = mail_login;
@@ -91,7 +91,7 @@ public class MailUtils {
                 session = Session.getInstance(props);
             }
 
-            session.setDebug(debug);
+            session.setDebug(mailDebug);
 
             // create a message
             Message msg = new MimeMessage(session);
